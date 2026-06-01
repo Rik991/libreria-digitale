@@ -75,16 +75,16 @@ export default function LoginForm() {
   };
 
   return (
-    <div className="mx-auto mt-12 max-w-md rounded-xl border border-gray-100 bg-white p-8 shadow-md">
+    <div className="mx-auto mt-12 max-w-md rounded-xl border border-border bg-card p-8 shadow-md">
       {/* Tabs */}
-      <div className="mb-6 flex border-b-2 border-gray-100">
+      <div className="mb-6 flex border-b-2 border-border">
         <button
           type="button"
           onClick={() => { setMode("login"); resetMessages(); }}
           className={`flex-1 border-b-2 pb-3 text-sm font-semibold transition-colors ${
             mode === "login"
               ? "border-primary text-primary"
-              : "border-transparent text-gray-400 hover:text-gray-600"
+              : "border-transparent text-muted-foreground hover:text-foreground"
           } -mb-[2px]`}
         >
           Accedi
@@ -95,7 +95,7 @@ export default function LoginForm() {
           className={`flex-1 border-b-2 pb-3 text-sm font-semibold transition-colors ${
             mode === "register"
               ? "border-primary text-primary"
-              : "border-transparent text-gray-400 hover:text-gray-600"
+              : "border-transparent text-muted-foreground hover:text-foreground"
           } -mb-[2px]`}
         >
           Registrati
@@ -109,7 +109,7 @@ export default function LoginForm() {
         </div>
       )}
       {success && (
-        <div className="mb-4 rounded-md bg-green-50 p-3 text-sm text-green-600">
+        <div className="mb-4 rounded-md bg-green-500/10 border border-green-500/20 p-3 text-sm text-green-500">
           {success}
         </div>
       )}
@@ -117,37 +117,37 @@ export default function LoginForm() {
       {/* Form */}
       <form onSubmit={mode === "login" ? handleLogin : handleSignUp}>
         <div className="mb-4">
-          <label className="mb-1 block text-sm font-medium text-gray-500">Email</label>
+          <label className="mb-1 block text-sm font-medium text-foreground">Email</label>
           <input
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            className="w-full rounded-md border border-gray-200 bg-white px-4 py-3 text-base outline-none transition-all focus:border-primary focus:ring-3 focus:ring-primary/15"
+            className="w-full rounded-md border border-border bg-background px-4 py-3 text-foreground outline-none transition-all focus:border-primary focus:ring-3 focus:ring-primary/15"
           />
         </div>
 
         {mode === "register" && (
           <div className="mb-4">
-            <label className="mb-1 block text-sm font-medium text-gray-500">Username</label>
+            <label className="mb-1 block text-sm font-medium text-foreground">Username</label>
             <input
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               required
-              className="w-full rounded-md border border-gray-200 bg-white px-4 py-3 text-base outline-none transition-all focus:border-primary focus:ring-3 focus:ring-primary/15"
+              className="w-full rounded-md border border-border bg-background px-4 py-3 text-foreground outline-none transition-all focus:border-primary focus:ring-3 focus:ring-primary/15"
             />
           </div>
         )}
 
         <div className="mb-4">
-          <label className="mb-1 block text-sm font-medium text-gray-500">Password</label>
+          <label className="mb-1 block text-sm font-medium text-foreground">Password</label>
           <input
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            className="w-full rounded-md border border-gray-200 bg-white px-4 py-3 text-base outline-none transition-all focus:border-primary focus:ring-3 focus:ring-primary/15"
+            className="w-full rounded-md border border-border bg-background px-4 py-3 text-foreground outline-none transition-all focus:border-primary focus:ring-3 focus:ring-primary/15"
           />
         </div>
 

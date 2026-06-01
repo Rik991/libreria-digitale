@@ -1,11 +1,11 @@
 import { Suspense } from "react";
 import Image from "next/image";
+import { BookX } from "lucide-react";
 import SaveToggle from "@/components/SaveToggle";
 import CommentsSection from "@/components/CommentsSection";
 import type { GutendexBook } from "@/types";
 
 async function getBook(id: string): Promise<GutendexBook | null> {
-  // Timeout di 10 secondi per non bloccare il rendering all'infinito
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 10000);
 
@@ -23,18 +23,16 @@ async function getBook(id: string): Promise<GutendexBook | null> {
   }
 }
 
-// Componente asincrono che fetcha e renderizza il libro
 async function BookContent({ id }: { id: string }) {
   const book = await getBook(id);
 
   if (!book) {
     return (
-      <div className="flex flex-1 flex-col items-center justify-center py-20 text-gray-500">
-        <p className="mb-4 text-4xl">📖</p>
-        <p className="mb-2 text-lg font-semibold">Libro non trovato</p>
-        <p className="text-sm">
-          L&apos;API potrebbe essere temporaneamente non disponibile. Riprova tra
-          qualche istante.
+      <div className="flex flex-1 flex-col items-center justify-center py-24 text-center text-muted-foreground">
+        <BookX className="mb-6 h-16 w-16 text-muted-foreground/50" />
+        <h2 className="mb-2 text-2xl font-bold text-foreground">Libro introvabile</h2>
+        <p className="max-w-md text-base">
+          Sembra che questo volume sia andato perduto negli archivi digitali, oppure l'API sta facendo i capricci. Riprova più tardi.
         </p>
       </div>
     );
@@ -42,7 +40,7 @@ async function BookContent({ id }: { id: string }) {
 
   const coverImage = book.formats["image/jpeg"] || null;
   const summary =
-    book.summaries?.[0] || "Nessuna trama disponibile per questo libro.";
+    book.summaries?.[0] || "Nessuna sinossi disponibile per questo titolo.";
 
   return (
     <>
@@ -50,7 +48,7 @@ async function BookContent({ id }: { id: string }) {
         {/* Cover */}
         <div className="w-full shrink-0 md:w-[260px]">
           {coverImage ? (
-            <div className="relative aspect-[2/3] w-full overflow-hidden rounded-xl shadow-md">
+            <div className="relative aspect-[2/3] w-full overflow-hidden rounded-xl shadow-lg border border-border">
               <Image
                 src={coverImage}
                 alt={book.title}
@@ -61,7 +59,7 @@ async function BookContent({ id }: { id: string }) {
               />
             </div>
           ) : (
-            <div className="flex aspect-[2/3] w-full items-center justify-center rounded-xl bg-gray-100 text-gray-400">
+            <div className="flex aspect-[2/3] w-full items-center justify-center rounded-xl bg-muted text-muted-foreground border border-border">
               Nessuna copertina
             </div>
           )}
@@ -70,20 +68,20 @@ async function BookContent({ id }: { id: string }) {
         {/* Info */}
         <div className="min-w-0 flex-1">
           <div className="mb-2 flex items-start justify-between gap-4">
-            <h1 className="text-4xl font-extrabold leading-tight text-gray-900">
+            <h1 className="text-4xl font-extrabold leading-tight text-foreground">
               {book.title}
             </h1>
             <SaveToggle book={book} coverImage={coverImage} />
           </div>
 
-          <p className="mb-6 text-xl text-gray-500">
+          <p className="mb-6 text-xl text-muted-foreground">
             di {book.authors[0]?.name || "Autore Ignoto"}
           </p>
 
           {/* Categories */}
           {book.subjects.length > 0 && (
             <div className="mb-6">
-              <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-gray-400">
+              <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
                 Categorie
               </h3>
               <div className="flex flex-wrap gap-2">
@@ -101,10 +99,10 @@ async function BookContent({ id }: { id: string }) {
 
           {/* Summary */}
           <div>
-            <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-gray-400">
+            <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
               Sinossi
             </h3>
-            <p className="leading-relaxed text-gray-600">{summary}</p>
+            <p className="leading-relaxed text-muted-foreground">{summary}</p>
           </div>
         </div>
       </div>
@@ -114,12 +112,11 @@ async function BookContent({ id }: { id: string }) {
   );
 }
 
-// Loading fallback
 function BookLoading() {
   return (
-    <div className="flex items-center justify-center py-20 text-gray-400">
-      <span className="mr-3 h-6 w-6 animate-spin rounded-full border-2 border-gray-300 border-t-primary" />
-      Caricamento dettagli del libro...
+    <div className="flex items-center justify-center py-20 text-muted-foreground">
+      <span className="mr-3 h-6 w-6 animate-spin rounded-full border-2 border-border border-t-primary" />
+      Ricerca del volume in corso...
     </div>
   );
 }
@@ -132,7 +129,7 @@ export default async function BookPage({
   const { id } = await params;
 
   return (
-    <main className="mx-auto w-full max-w-[900px] flex-1 px-8 py-8">
+    <main className="mx-auto w-full max-w-[900px] flex-1 px-8 py-10">
       <Suspense fallback={<BookLoading />}>
         <BookContent id={id} />
       </Suspense>

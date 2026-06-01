@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabase";
 import { type User } from "@supabase/supabase-js";
 import type { Comment } from "@/types";
 import StarRating from "@/components/StarRating";
+import Link from "next/link";
 
 interface CommentsSectionProps {
   bookId: number;
@@ -72,23 +73,23 @@ export default function CommentsSection({ bookId }: CommentsSectionProps) {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-10 text-gray-400">
-        <span className="mr-3 h-5 w-5 animate-spin rounded-full border-2 border-gray-300 border-t-primary" />
-        Caricamento commenti...
+      <div className="flex items-center justify-center py-10 text-muted-foreground">
+        <span className="mr-3 h-5 w-5 animate-spin rounded-full border-2 border-border border-t-primary" />
+        Caricamento recensioni...
       </div>
     );
   }
 
   return (
     <div className="mt-10 w-full">
-      <h2 className="mb-6 border-b border-gray-100 pb-2 text-2xl font-bold text-gray-900">
+      <h2 className="mb-6 border-b border-border pb-2 text-2xl font-bold text-foreground">
         Recensioni dei Lettori
       </h2>
 
       {/* Form */}
       {currentUser ? (
-        <form onSubmit={handleSubmit} className="mb-8 rounded-lg border border-gray-100 bg-white p-5 shadow-sm">
-          <label className="mb-3 block text-sm font-semibold text-gray-800">
+        <form onSubmit={handleSubmit} className="mb-8 rounded-xl border border-border bg-card p-6 shadow-sm">
+          <label className="mb-3 block text-sm font-semibold text-foreground">
             Lascia la tua recensione
           </label>
 
@@ -97,41 +98,45 @@ export default function CommentsSection({ bookId }: CommentsSectionProps) {
           </div>
 
           <textarea
-            className="w-full resize-none rounded-md border border-gray-200 bg-white p-4 text-gray-900 placeholder-gray-400 outline-none transition-all focus:border-primary focus:ring-3 focus:ring-primary/15"
+            className="w-full resize-none rounded-md border border-border bg-background p-4 text-foreground placeholder-muted-foreground outline-none transition-all focus:border-primary focus:ring-3 focus:ring-primary/15"
             rows={4}
             placeholder="Cosa ne pensi di questo libro? Scrivi qui..."
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
             required
           />
-          <div className="mt-3 flex justify-end">
+          <div className="mt-4 flex justify-end">
             <button
               type="submit"
               className="rounded-md bg-primary px-6 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary-hover"
             >
-              Pubblica
+              Pubblica Recensione
             </button>
           </div>
         </form>
       ) : (
-        <div className="mb-8 rounded-md border border-yellow-200 bg-yellow-50 p-4 text-sm text-yellow-800">
-          Devi loggarti per poter lasciare un commento e un voto.
+        <div className="mb-8 rounded-lg border border-border bg-muted p-5 text-sm text-muted-foreground">
+          Hai letto questo libro?{" "}
+          <Link href="/login" className="font-semibold text-primary hover:underline">
+            Accedi
+          </Link>{" "}
+          per lasciare un commento e un voto.
         </div>
       )}
 
       {/* List */}
       <div className="flex flex-col gap-4">
         {comments.length === 0 ? (
-          <p className="italic text-gray-400">Nessuna recensione per questo libro. Sii il primo!</p>
+          <p className="italic text-muted-foreground">Nessuna recensione per questo libro. Sii il primo!</p>
         ) : (
           comments.map((comment) => (
-            <div key={comment.id} className="rounded-lg border border-gray-100 bg-white p-5 shadow-sm">
+            <div key={comment.id} className="rounded-xl border border-border bg-card p-5 shadow-sm">
               <div className="mb-3 flex items-start justify-between">
                 <div className="flex flex-col">
-                  <span className="font-bold text-gray-900">
+                  <span className="font-bold text-card-foreground">
                     {comment.profiles?.username || "Utente Anonimo"}
                   </span>
-                  <span className="mt-0.5 text-xs text-gray-400">
+                  <span className="mt-0.5 text-xs text-muted-foreground">
                     {new Date(comment.created_at).toLocaleDateString("it-IT", {
                       year: "numeric",
                       month: "long",
@@ -143,11 +148,11 @@ export default function CommentsSection({ bookId }: CommentsSectionProps) {
                 {comment.rating ? (
                   <StarRating value={comment.rating} size="sm" />
                 ) : (
-                  <span className="text-sm text-gray-300">-</span>
+                  <span className="text-sm text-muted-foreground">-</span>
                 )}
               </div>
 
-              <p className="whitespace-pre-wrap leading-relaxed text-gray-700">
+              <p className="whitespace-pre-wrap leading-relaxed text-card-foreground/80">
                 {comment.content}
               </p>
 

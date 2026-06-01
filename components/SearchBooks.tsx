@@ -84,7 +84,7 @@ export default function SearchBooks({ initialPopularBooks = [] }: SearchBooksPro
       {/* Search input */}
       <div className="relative mb-8 max-w-xl">
         <svg
-          className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400"
+          className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground"
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
           viewBox="0 0 24 24"
@@ -102,22 +102,22 @@ export default function SearchBooks({ initialPopularBooks = [] }: SearchBooksPro
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Cerca per titolo, autore, argomento..."
-          className="w-full rounded-lg border border-gray-200 bg-white py-3 pl-12 pr-4 text-base outline-none transition-all focus:border-primary focus:ring-3 focus:ring-primary/15"
+          className="w-full rounded-lg border border-border bg-card text-card-foreground px-4 py-3 pl-12 text-base outline-none transition-all focus:border-primary focus:ring-3 focus:ring-primary/15 placeholder:text-muted-foreground"
         />
       </div>
 
       {/* Search Status */}
       {loading && (
-        <div className="mb-6 flex items-center gap-3 text-gray-400">
-          <span className="h-5 w-5 animate-spin rounded-full border-2 border-gray-300 border-t-primary" />
+        <div className="mb-6 flex items-center gap-3 text-muted-foreground">
+          <span className="h-5 w-5 animate-spin rounded-full border-2 border-border border-t-primary" />
           Ricerca in corso...
         </div>
       )}
 
-      {error && <p className="mb-6 text-sm text-red-600">{error}</p>}
+      {error && <p className="mb-6 text-sm text-danger">{error}</p>}
 
       {!loading && !error && searched && books.length === 0 && (
-        <p className="mb-6 italic text-gray-400">
+        <p className="mb-6 italic text-muted-foreground">
           Nessun risultato per &ldquo;{query}&rdquo;
         </p>
       )}
@@ -125,7 +125,7 @@ export default function SearchBooks({ initialPopularBooks = [] }: SearchBooksPro
       {/* Results or Popular Catalog */}
       {showPopular ? (
         <div>
-          <h2 className="mb-4 text-xl font-bold text-gray-900">Catalogo Popolari</h2>
+          <h2 className="mb-4 text-xl font-bold text-foreground">I Classici Più Amati</h2>
           {initialPopularBooks?.length > 0 ? (
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:gap-6">
               {initialPopularBooks.map((book) => (
@@ -133,7 +133,7 @@ export default function SearchBooks({ initialPopularBooks = [] }: SearchBooksPro
               ))}
             </div>
           ) : (
-            <p className="text-gray-400">Nessun libro trovato nel catalogo generale.</p>
+            <p className="text-muted-foreground">Nessun libro trovato nel catalogo generale.</p>
           )}
         </div>
       ) : (

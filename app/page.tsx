@@ -20,16 +20,16 @@ export default async function HomePage() {
   const popularBooks = await getPopularBooks();
 
   return (
-    <main className="mx-auto w-full max-w-[1200px] flex-1 px-8 py-8">
-      <div className="mb-8">
-        <h1 className="mb-2 text-3xl font-extrabold text-gray-900">
-          La tua Libreria Digitale
+    <main className="mx-auto w-full max-w-[1200px] flex-1 px-8 py-10">
+      <div className="mb-10">
+        <h1 className="mb-2 text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl">
+          La Tua Libreria Personale
         </h1>
-        <p className="text-lg text-gray-500">
-          Cerca tra migliaia di libri del catalogo Gutenberg
+        <p className="max-w-2xl text-lg text-muted-foreground">
+          Esplora migliaia di grandi classici dal catalogo Gutenberg. Crea la tua collezione perfetta e lascia la tua recensione.
         </p>
       </div>
-      <Suspense fallback={<div className="py-10 text-center text-gray-400">Caricamento interfaccia...</div>}>
+      <Suspense fallback={<div className="py-10 text-center text-muted-foreground">Caricamento interfaccia...</div>}>
         <SearchBooks initialPopularBooks={popularBooks} />
       </Suspense>
     </main>

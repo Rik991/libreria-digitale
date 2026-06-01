@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import type { GutendexBook } from "@/types";
 
@@ -16,8 +17,8 @@ export default function BookCard({ book, initialSaved }: BookCardProps) {
   const author = book.authors[0]?.name || "Autore sconosciuto";
   const [isSaved, setIsSaved] = useState(initialSaved ?? false);
   const [checked, setChecked] = useState(initialSaved !== undefined);
+  const router = useRouter();
 
-  // Se non ci viene detto dall'esterno, controlliamo noi
   useEffect(() => {
     if (initialSaved !== undefined) return;
     const check = async () => {
@@ -43,7 +44,7 @@ export default function BookCard({ book, initialSaved }: BookCardProps) {
 
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
-      alert("Devi fare il login per salvare i libri!");
+      router.push("/login?redirect=true");
       return;
     }
 
@@ -71,10 +72,10 @@ export default function BookCard({ book, initialSaved }: BookCardProps) {
   return (
     <Link
       href={`/book/${book.id}`}
-      className="group flex flex-col overflow-hidden rounded-xl border border-gray-100 bg-white transition-all hover:-translate-y-0.5 hover:shadow-lg"
+      className="group flex flex-col overflow-hidden rounded-xl border border-border bg-card transition-all hover:-translate-y-0.5 hover:shadow-lg"
     >
       {/* Cover + Heart overlay */}
-      <div className="relative aspect-[2/3] w-full overflow-hidden bg-gray-100">
+      <div className="relative aspect-[2/3] w-full overflow-hidden bg-muted">
         {coverImage ? (
           <Image
             src={coverImage}
@@ -84,7 +85,7 @@ export default function BookCard({ book, initialSaved }: BookCardProps) {
             className="object-cover transition-transform group-hover:scale-105"
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center text-sm text-gray-400">
+          <div className="flex h-full w-full items-center justify-center text-sm text-muted-foreground">
             Nessuna copertina
           </div>
         )}
@@ -95,8 +96,8 @@ export default function BookCard({ book, initialSaved }: BookCardProps) {
             onClick={handleToggleSave}
             className={`absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full shadow-md transition-all ${
               isSaved
-                ? "bg-red-500 text-white"
-                : "bg-white/80 text-gray-400 hover:bg-white hover:text-red-500"
+                ? "bg-danger text-white"
+                : "bg-background/80 text-muted-foreground hover:bg-background hover:text-danger"
             }`}
             title={isSaved ? "Rimuovi dai preferiti" : "Salva nei preferiti"}
           >
@@ -120,10 +121,10 @@ export default function BookCard({ book, initialSaved }: BookCardProps) {
 
       {/* Info */}
       <div className="flex flex-1 flex-col p-4">
-        <h3 className="line-clamp-2 text-base font-semibold leading-tight text-gray-900">
+        <h3 className="line-clamp-2 text-base font-semibold leading-tight text-card-foreground">
           {book.title}
         </h3>
-        <p className="mt-1 text-sm text-gray-500">{author}</p>
+        <p className="mt-1 text-sm text-muted-foreground">{author}</p>
       </div>
     </Link>
   );

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Navbar from "@/components/Navbar";
+import { ThemeProvider } from "@/components/ThemeProvider";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -14,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Libreria Digitale — La tua collezione di libri",
+  title: "Libreria Digitale — Esplora i grandi classici",
   description:
     "Cerca libri dal catalogo Gutenberg, salvali nella tua collezione e lascia recensioni.",
 };
@@ -25,10 +26,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="it" className={`${geistSans.variable} ${geistMono.variable}`}>
-      <body className="flex min-h-screen flex-col antialiased">
-        <Navbar />
-        {children}
+    // suppressHydrationWarning is needed by next-themes to avoid hydration mismatch
+    <html lang="it" suppressHydrationWarning className={`${geistSans.variable} ${geistMono.variable}`}>
+      <body className="flex min-h-screen flex-col antialiased bg-background text-foreground transition-colors duration-300">
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          enableSystem={false}
+          disableTransitionOnChange
+        >
+          <Navbar />
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );

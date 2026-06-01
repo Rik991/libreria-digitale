@@ -3,13 +3,31 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useTheme } from "next-themes";
 import { supabase } from "@/lib/supabase";
 import type { User } from "@supabase/supabase-js";
+import {
+  BookOpen,
+  Search,
+  Library,
+  LogIn,
+  LogOut,
+  Moon,
+  Sun,
+  User as UserIcon,
+} from "lucide-react";
 
 export default function Navbar() {
   const [user, setUser] = useState<User | null>(null);
   const pathname = usePathname();
   const router = useRouter();
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  // next-themes hydration fix
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => setUser(user));
@@ -28,42 +46,83 @@ export default function Navbar() {
     router.push("/");
   };
 
-  const linkClass = (path: string) =>
-    `text-sm font-medium transition-colors hover:text-primary ${
-      pathname === path ? "text-primary" : "text-gray-500"
-    }`;
+  const isCurrent = (path: string) => pathname === path;
 
   return (
-    <nav className="sticky top-0 z-50 flex items-center justify-between border-b border-gray-200 bg-white px-8 py-4">
+    <nav className="sticky top-0 z-50 flex items-center justify-between border-b border-border bg-background/80 px-4 py-4 backdrop-blur-md sm:px-8">
       {/* Logo */}
-      <Link href="/" className="flex items-center gap-2 text-xl font-bold text-primary">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-6 w-6">
-          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z" />
-        </svg>
-        Libreria Digitale
+      <Link
+        href="/"
+        className="group flex items-center gap-2 text-xl font-bold text-primary transition-colors hover:text-primary-hover"
+      >
+        <BookOpen className="h-6 w-6 transition-transform group-hover:-rotate-6 group-hover:scale-110" />
+        <span className="hidden sm:inline">Libreria Digitale</span>
       </Link>
 
-      {/* Links */}
-      <div className="flex items-center gap-6">
-        <Link href="/" className={linkClass("/")}>
-          Cerca
+      {/* Links & Actions */}
+      <div className="flex items-center gap-4 sm:gap-6">
+        <Link
+          href="/"
+          className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-primary ${
+            isCurrent("/") ? "text-primary" : "text-muted-foreground"
+          }`}
+          title="Cerca"
+        >
+          <Search className="h-5 w-5" />
+          <span className="hidden sm:inline">Cerca</span>
         </Link>
-        <Link href="/libreria" className={linkClass("/libreria")}>
-          La Mia Libreria
+        <Link
+          href="/libreria"
+          className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-primary ${
+            isCurrent("/libreria") ? "text-primary" : "text-muted-foreground"
+          }`}
+          title="La Mia Libreria"
+        >
+          <Library className="h-5 w-5" />
+          <span className="hidden sm:inline">La Mia Libreria</span>
         </Link>
 
+        <div className="h-5 w-px bg-border mx-1 hidden sm:block" />
+
+        {/* Theme Toggle */}
+        {mounted && (
+          <button
+            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-primary"
+            title={theme === "dark" ? "Passa al tema chiaro" : "Passa al tema scuro"}
+          >
+            {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+          </button>
+        )}
+
+        {/* Auth */}
         {user ? (
           <div className="flex items-center gap-3">
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-light text-xs font-semibold text-primary">
-              {user.email?.[0].toUpperCase()}
-            </span>
-            <button onClick={handleLogout} className="text-sm font-medium text-gray-500 transition-colors hover:text-danger">
-              Esci
+            <div
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-light text-primary"
+              title={user.email || "Utente"}
+            >
+              <UserIcon className="h-4 w-4" />
+            </div>
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-danger"
+              title="Esci"
+            >
+              <LogOut className="h-5 w-5" />
+              <span className="hidden sm:inline">Esci</span>
             </button>
           </div>
         ) : (
-          <Link href="/login" className={linkClass("/login")}>
-            Accedi
+          <Link
+            href="/login"
+            className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-primary ${
+              isCurrent("/login") ? "text-primary" : "text-muted-foreground"
+            }`}
+            title="Accedi"
+          >
+            <LogIn className="h-5 w-5" />
+            <span className="hidden sm:inline">Accedi</span>
           </Link>
         )}
       </div>
