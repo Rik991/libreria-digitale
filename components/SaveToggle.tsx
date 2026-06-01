@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { Heart } from "lucide-react";
 import type { GutendexBook } from "@/types";
 
 interface SaveToggleProps {
@@ -12,6 +14,7 @@ interface SaveToggleProps {
 export default function SaveToggle({ book, coverImage }: SaveToggleProps) {
   const [isSaved, setIsSaved] = useState(false);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
     const checkIfSaved = async () => {
@@ -39,7 +42,7 @@ export default function SaveToggle({ book, coverImage }: SaveToggleProps) {
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
-      alert("Devi fare il login per salvare i libri!");
+      router.push("/login?redirect=true");
       return;
     }
 
@@ -67,33 +70,23 @@ export default function SaveToggle({ book, coverImage }: SaveToggleProps) {
   };
 
   if (loading) {
-    return <div className="h-10 w-10 animate-pulse rounded-full bg-gray-200" />;
+    return <div className="h-12 w-12 animate-pulse rounded-full bg-muted" />;
   }
 
   return (
     <button
       onClick={toggleSave}
-      className={`flex shrink-0 items-center justify-center rounded-full p-3 transition-colors ${
+      className={`flex shrink-0 items-center justify-center rounded-full p-3 transition-all ${
         isSaved
-          ? "bg-danger-light text-danger"
-          : "bg-gray-100 text-gray-400 hover:bg-danger-light hover:text-danger"
+          ? "bg-danger text-white shadow-md hover:bg-danger/90"
+          : "bg-muted text-muted-foreground hover:bg-background hover:text-danger hover:shadow-sm border border-transparent hover:border-danger/30"
       }`}
       title={isSaved ? "Rimuovi dai preferiti" : "Aggiungi ai preferiti"}
     >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 24 24"
+      <Heart
+        className="h-6 w-6 transition-transform hover:scale-110"
         fill={isSaved ? "currentColor" : "none"}
-        stroke="currentColor"
-        className="h-6 w-6"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={2}
-          d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-        />
-      </svg>
+      />
     </button>
   );
 }

@@ -19,13 +19,15 @@ export default function SearchBooks({ initialPopularBooks = [] }: SearchBooksPro
   const [query, setQuery] = useState(initialQuery);
   const [books, setBooks] = useState<GutendexBook[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searched, setSearched] = useState(!!initialQuery);
   const [savedIds, setSavedIds] = useState<Set<number>>(new Set());
+  const [nextUrl, setNextUrl] = useState<string | null>(null);
 
   const abortRef = useRef<AbortController | null>(null);
 
-  // Fetch dei libri salvati per ottimizzare le icone (evita N+1 query nei BookCard)
+  // Fetch dei libri salvati
   useEffect(() => {
     const fetchSavedIds = async () => {
       const {
@@ -69,6 +71,7 @@ export default function SearchBooks({ initialPopularBooks = [] }: SearchBooksPro
   useEffect(() => {
     if (!query.trim()) {
       setBooks([]);
+      setNextUrl(null);
       setSearched(false);
       setLoading(false);
       setError(null);
@@ -90,14 +93,15 @@ export default function SearchBooks({ initialPopularBooks = [] }: SearchBooksPro
         if (!res.ok) throw new Error(`Errore API: ${res.status}`);
 
         const data: GutendexSearchResponse = await res.json();
-        // Tagliamo a 30 risultati per avere una griglia perfetta (5 colonne su desktop)
-        setBooks((data.results || []).slice(0, 30));
+        setBooks(data.results);
+        setNextUrl(data.next);
         setSearched(true);
       } catch (err) {
         if (err instanceof DOMException && err.name === "AbortError") return;
 
         setError(err instanceof Error ? err.message : "Errore sconosciuto");
         setBooks([]);
+        setNextUrl(null);
       } finally {
         setLoading(false);
       }
@@ -106,7 +110,30 @@ export default function SearchBooks({ initialPopularBooks = [] }: SearchBooksPro
     return () => clearTimeout(timer);
   }, [query]);
 
+  const loadMore = async () => {
+    if (!nextUrl || loadingMore) return;
+
+    setLoadingMore(true);
+    try {
+      const res = await fetch(nextUrl);
+      if (!res.ok) throw new Error(`Errore API: ${res.status}`);
+
+      const data: GutendexSearchResponse = await res.json();
+      setBooks((prev) => [...prev, ...data.results]);
+      setNextUrl(data.next);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Errore durante il caricamento");
+    } finally {
+      setLoadingMore(false);
+    }
+  };
+
   const showPopular = !query.trim() && !searched;
+
+  // Se c'è una pagina successiva, mascheriamo gli elementi extra nel buffer per non rompere la griglia a 5.
+  // Se non c'è una pagina successiva, mostriamo tutto quello che abbiamo.
+  const renderableCount = nextUrl ? Math.floor(books.length / 30) * 30 : books.length;
+  const renderableBooks = books.slice(0, renderableCount);
 
   return (
     <div>
@@ -149,10 +176,31 @@ export default function SearchBooks({ initialPopularBooks = [] }: SearchBooksPro
           )}
         </div>
       ) : (
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:gap-6">
-          {books.map((book) => (
-            <BookCard key={book.id} book={book} initialSaved={savedIds.has(book.id)} />
-          ))}
+        <div className="flex flex-col">
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:gap-6">
+            {renderableBooks.map((book) => (
+              <BookCard key={book.id} book={book} initialSaved={savedIds.has(book.id)} />
+            ))}
+          </div>
+
+          {nextUrl && (
+            <div className="mt-12 flex justify-center">
+              <button
+                onClick={loadMore}
+                disabled={loadingMore}
+                className="flex items-center rounded-full bg-card border border-border px-8 py-3 text-sm font-semibold text-foreground transition-all hover:border-primary hover:text-primary disabled:opacity-50"
+              >
+                {loadingMore ? (
+                  <>
+                    <span className="mr-3 h-4 w-4 animate-spin rounded-full border-2 border-border border-t-primary" />
+                    Caricamento in corso...
+                  </>
+                ) : (
+                  "Carica altri risultati"
+                )}
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>

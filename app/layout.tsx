@@ -6,22 +6,21 @@ import "./globals.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
-  subsets: ["latin"],
+  subsets: ["latin"]
 });
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
-  subsets: ["latin"],
+  subsets: ["latin"]
 });
 
 export const metadata: Metadata = {
   title: "Libreria Digitale — Esplora i grandi classici",
-  description:
-    "Cerca libri dal catalogo Gutenberg, salvali nella tua collezione e lascia recensioni.",
+  description: "Cerca libri dal catalogo, salvali nella tua collezione e lascia recensioni."
 };
 
 export default function RootLayout({
-  children,
+  children
 }: Readonly<{
   children: React.ReactNode;
 }>) {
@@ -29,12 +28,7 @@ export default function RootLayout({
     // suppressHydrationWarning is needed by next-themes to avoid hydration mismatch
     <html lang="it" suppressHydrationWarning className={`${geistSans.variable} ${geistMono.variable}`}>
       <body className="flex min-h-screen flex-col antialiased bg-background text-foreground transition-colors duration-300">
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="dark"
-          enableSystem={false}
-          disableTransitionOnChange
-        >
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} disableTransitionOnChange>
           <Navbar />
           {children}
         </ThemeProvider>

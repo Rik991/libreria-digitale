@@ -9,7 +9,6 @@ async function getPopularBooks(): Promise<GutendexBook[]> {
     });
     if (!res.ok) return [];
     const data = await res.json();
-    // Prendiamo solo i primi 30 libri (multiplo di 5, 3 e 2) per avere una griglia perfetta senza buchi su desktop
     return (data.results || []).slice(0, 30);
   } catch {
     return [];

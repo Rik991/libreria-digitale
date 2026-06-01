@@ -6,16 +6,7 @@ import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 import { supabase } from "@/lib/supabase";
 import type { User } from "@supabase/supabase-js";
-import {
-  BookOpen,
-  Search,
-  Library,
-  LogIn,
-  LogOut,
-  Moon,
-  Sun,
-  User as UserIcon,
-} from "lucide-react";
+import { BookOpen, Search, Library, LogIn, LogOut, Moon, Sun, User as UserIcon } from "lucide-react";
 
 export default function Navbar() {
   const [user, setUser] = useState<User | null>(null);
@@ -33,7 +24,7 @@ export default function Navbar() {
     supabase.auth.getUser().then(({ data: { user } }) => setUser(user));
 
     const {
-      data: { subscription },
+      data: { subscription }
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
     });
@@ -51,10 +42,7 @@ export default function Navbar() {
   return (
     <nav className="sticky top-0 z-50 flex items-center justify-between border-b border-border bg-background/80 px-4 py-4 backdrop-blur-md sm:px-8">
       {/* Logo */}
-      <Link
-        href="/"
-        className="group flex items-center gap-2 text-xl font-bold text-primary transition-colors hover:text-primary-hover"
-      >
+      <Link href="/" className="group flex items-center gap-2 text-xl font-bold text-primary transition-colors hover:text-primary-hover">
         <BookOpen className="h-6 w-6 transition-transform group-hover:-rotate-6 group-hover:scale-110" />
         <span className="hidden sm:inline">Libreria Digitale</span>
       </Link>
@@ -76,10 +64,10 @@ export default function Navbar() {
           className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-primary ${
             isCurrent("/libreria") ? "text-primary" : "text-muted-foreground"
           }`}
-          title="La Mia Libreria"
+          title="La Mia Collezione"
         >
           <Library className="h-5 w-5" />
-          <span className="hidden sm:inline">La Mia Libreria</span>
+          <span className="hidden sm:inline">La Mia Collezione</span>
         </Link>
 
         <div className="h-5 w-px bg-border mx-1 hidden sm:block" />
@@ -98,10 +86,7 @@ export default function Navbar() {
         {/* Auth */}
         {user ? (
           <div className="flex items-center gap-3">
-            <div
-              className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-light text-primary"
-              title={user.email || "Utente"}
-            >
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-light text-primary" title={user.email || "Utente"}>
               <UserIcon className="h-4 w-4" />
             </div>
             <button

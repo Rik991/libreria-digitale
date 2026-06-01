@@ -15,17 +15,16 @@ export default function LibraryContent() {
 
   useEffect(() => {
     const fetchMyBooks = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user }
+      } = await supabase.auth.getUser();
 
       if (!user) {
         router.push("/login");
         return;
       }
 
-      const { data, error } = await supabase
-        .from("saved_books")
-        .select("*")
-        .eq("user_id", user.id);
+      const { data, error } = await supabase.from("saved_books").select("*").eq("user_id", user.id);
 
       if (!error) {
         setBooks(data || []);
@@ -60,13 +59,8 @@ export default function LibraryContent() {
       <div className="flex flex-col items-center justify-center py-24 text-center text-muted-foreground">
         <LibraryBig className="mb-6 h-16 w-16 text-muted-foreground/50" />
         <h2 className="mb-2 text-2xl font-bold text-foreground">La tua collezione è vuota</h2>
-        <p className="max-w-md text-base">
-          Esplora il catalogo Gutenberg e inizia ad aggiungere le tue prossime letture a questo scaffale digitale.
-        </p>
-        <Link
-          href="/"
-          className="mt-6 rounded-full bg-primary px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-primary-hover"
-        >
+        <p className="max-w-md text-base">Esplora il catalogo e inizia ad aggiungere le tue prossime letture a questo scaffale digitale.</p>
+        <Link href="/" className="mt-6 rounded-full bg-primary px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-primary-hover">
           Scopri i grandi classici
         </Link>
       </div>
@@ -91,9 +85,7 @@ export default function LibraryContent() {
                 className="object-cover transition-transform group-hover:scale-105"
               />
             ) : (
-              <div className="flex h-full w-full items-center justify-center text-sm text-muted-foreground">
-                Nessuna copertina
-              </div>
+              <div className="flex h-full w-full items-center justify-center text-sm text-muted-foreground">Nessuna copertina</div>
             )}
 
             {/* Heart Button overlay to remove book */}
@@ -102,13 +94,7 @@ export default function LibraryContent() {
               className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-danger text-white shadow-md transition-all hover:bg-white hover:text-danger hover:border hover:border-danger"
               title="Rimuovi dai preferiti"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-                stroke="currentColor"
-                className="h-4 w-4"
-              >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" className="h-4 w-4">
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -118,11 +104,9 @@ export default function LibraryContent() {
               </svg>
             </button>
           </div>
-          
+
           <div className="flex flex-1 flex-col p-4">
-            <h3 className="line-clamp-2 text-base font-semibold leading-tight text-card-foreground">
-              {book.title}
-            </h3>
+            <h3 className="line-clamp-2 text-base font-semibold leading-tight text-card-foreground">{book.title}</h3>
             <p className="mt-1 text-sm text-muted-foreground">{book.author}</p>
           </div>
         </Link>

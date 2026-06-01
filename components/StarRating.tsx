@@ -1,5 +1,7 @@
 "use client";
 
+import { Star } from "lucide-react";
+
 interface StarRatingProps {
   value: number;
   onChange?: (value: number) => void;
@@ -17,30 +19,21 @@ export default function StarRating({
 
   return (
     <div className="flex gap-0.5">
-      {[1, 2, 3, 4, 5].map((star) => (
+      {[1, 2, 3, 4, 5].map((starIdx) => (
         <button
-          key={star}
+          key={starIdx}
           type="button"
-          onClick={() => interactive && onChange?.(star)}
+          onClick={() => interactive && onChange?.(starIdx)}
           className={`border-none bg-transparent p-0 transition-all ${
             interactive ? "cursor-pointer hover:scale-110" : "cursor-default"
-          } ${star <= value ? "text-star" : "text-star-empty"}`}
+          } ${starIdx <= value ? "text-star" : "text-star-empty"}`}
           disabled={!interactive}
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill={star <= value ? "currentColor" : "none"}
-            stroke="currentColor"
+          <Star
             className={sizeClass}
-          >
-            <polygon
-              points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={1.5}
-            />
-          </svg>
+            fill={starIdx <= value ? "currentColor" : "none"}
+            strokeWidth={1.5}
+          />
         </button>
       ))}
     </div>

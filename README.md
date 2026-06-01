@@ -4,7 +4,7 @@ cd libreria-digitale
 
 npm install
 
-Crea un file `.env.local` nella root del progetto:
+Crea un file `.env.local` nella root del progetto. Includerò le chiavi in file di testo separato nella mail, so che non è un metodo sicuro, ma è il metodo più semplice per condividere le chiavi dato che il repository è pubblico.
 
 npm run dev
 

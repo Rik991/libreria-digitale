@@ -1,10 +1,5 @@
 @import "tailwindcss";
 
-/* ============================================================
-   LIBRERIA DIGITALE — Tailwind v4 Theme
-   Custom properties e stili base. Tutto il resto via utility.
-   ============================================================ */
-
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -37,11 +32,11 @@
 :root {
   --background: #f8f9fb;
   --foreground: #0f172a;
-  
+
   --border: #e2e8f0;
   --card: #ffffff;
   --card-foreground: #0f172a;
-  
+
   --muted: #f1f5f9;
   --muted-foreground: #64748b;
 
@@ -59,11 +54,11 @@
 .dark {
   --background: #020617;
   --foreground: #f8fafc;
-  
+
   --border: #1e293b;
   --card: #0f172a;
   --card-foreground: #f8fafc;
-  
+
   --muted: #1e293b;
   --muted-foreground: #94a3b8;
 
@@ -86,8 +81,13 @@ body {
   min-height: 100%;
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-geist-sans), -apple-system, BlinkMacSystemFont,
-    "Segoe UI", Roboto, sans-serif;
+  font-family:
+    var(--font-geist-sans),
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    sans-serif;
 }
 
 /* --- Transizioni per il tema --- */
@@ -98,12 +98,19 @@ body {
 
 /* --- Animations --- */
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes pulse-subtle {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
 }
 
 @keyframes fadeIn {
