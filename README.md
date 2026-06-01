@@ -1,36 +1,97 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Libreria Digitale 📚
 
-## Getting Started
+Una libreria digitale dove puoi cercare libri dal catalogo Project Gutenberg, salvarli nella tua collezione personale, e lasciare recensioni con voto.
 
-First, run the development server:
+## Stack
+
+- **Next.js 16** (App Router, Server Components)
+- **TypeScript**
+- **Tailwind CSS v4** per lo stile
+- **Supabase** per autenticazione e persistenza dati
+- **Gutendex API** (`gutendex.com`) per il catalogo libri
+
+## Avvio rapido
+
+### Prerequisiti
+
+- Node.js 18+
+- Un progetto Supabase con le tabelle `profiles`, `saved_books` e `comments`
+
+### Installazione
+
+```bash
+# Clona il repository
+git clone <url-repo>
+cd libreria-digitale
+
+# Installa le dipendenze
+npm install
+```
+
+### Variabili d'ambiente
+
+Crea un file `.env.local` nella root del progetto:
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=<il-tuo-url-supabase>
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<la-tua-anon-key>
+```
+
+### Avvio in sviluppo
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+L'app sarà disponibile su [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Build di produzione
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run build
+npm start
+```
 
-## Learn More
+## Struttura del progetto
 
-To learn more about Next.js, take a look at the following resources:
+```
+app/
+├── layout.tsx          → Layout globale con Navbar
+├── page.tsx            → Home: ricerca libri (Server Component)
+├── login/page.tsx      → Login/Registrazione
+├── libreria/page.tsx   → Collezione personale
+└── book/[id]/page.tsx  → Dettaglio libro (SSR)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+components/
+├── Navbar.tsx          → Navigazione con stato auth
+├── SearchBooks.tsx     → Input ricerca + risultati
+├── BookCard.tsx        → Card libro riusabile
+├── StarRating.tsx      → Stelline interattive/display
+├── LoginForm.tsx       → Form login e registrazione
+├── LibraryContent.tsx  → Griglia libri salvati
+├── SaveToggle.tsx      → Salva/rimuovi libro
+└── CommentsSection.tsx → Recensioni con voto
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+lib/
+└── supabase.ts         → Client Supabase singleton
 
-## Deploy on Vercel
+types/
+└── index.ts            → Tutte le interfacce TypeScript
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Architettura
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Le **pagine** sono Server Components: nessun `"use client"`, rendering veloce, SEO ottimale
+- La pagina dettaglio libro (`/book/[id]`) fetcha i dati **lato server** con cache di 1 ora
+- Solo i **componenti interattivi** (form, bottoni, ricerca) usano `"use client"`
+- Il client Supabase è un **singleton** esportato da `lib/supabase.ts`
+- L'API utilizzata è **Gutendex** (`gutendex.com`): gratuita, senza API key
+
+## Funzionalità
+
+- 🔍 Ricerca libri con debounce (500ms)
+- 📖 Dettaglio libro con copertina, categorie, sinossi
+- ❤️ Salvataggio nella collezione personale
+- ⭐ Recensioni con voto (1-5 stelle)
+- 🔐 Autenticazione (login + registrazione)
+- 📱 Layout responsive
