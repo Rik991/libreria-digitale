@@ -7,6 +7,7 @@ import Link from "next/link";
 import { LibraryBig } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import type { SavedBook } from "@/types";
+import SaveToggle from "./SaveToggle";
 
 export default function LibraryContent() {
   const [books, setBooks] = useState<SavedBook[]>([]);
@@ -34,16 +35,6 @@ export default function LibraryContent() {
 
     fetchMyBooks();
   }, [router]);
-
-  const handleRemove = async (e: React.MouseEvent, id: string) => {
-    e.preventDefault(); // Prevent navigating to the book link
-    e.stopPropagation();
-
-    const { error } = await supabase.from("saved_books").delete().eq("id", id);
-    if (!error) {
-      setBooks((prev) => prev.filter((b) => b.id !== id));
-    }
-  };
 
   if (loading) {
     return (
@@ -88,21 +79,20 @@ export default function LibraryContent() {
               <div className="flex h-full w-full items-center justify-center text-sm text-muted-foreground">Nessuna copertina</div>
             )}
 
-            {/* Heart Button overlay to remove book */}
-            <button
-              onClick={(e) => handleRemove(e, book.id)}
-              className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-danger text-white shadow-md transition-all hover:bg-white hover:text-danger hover:border hover:border-danger"
-              title="Rimuovi dai preferiti"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" className="h-4 w-4">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-                />
-              </svg>
-            </button>
+            {/* Reusable Heart Button overlay */}
+            <SaveToggle
+              variant="icon"
+              bookId={book.book_id}
+              title={book.title}
+              author={book.author}
+              coverImage={book.cover_image}
+              initialSaved={true}
+              onToggle={(isSaved) => {
+                if (!isSaved) {
+                  setBooks((prev) => prev.filter((b) => b.book_id !== book.book_id));
+                }
+              }}
+            />
           </div>
 
           <div className="flex flex-1 flex-col p-4">

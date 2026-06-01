@@ -61,7 +61,12 @@ async function BookContent({ id }: { id: string }) {
         <div className="min-w-0 flex-1">
           <div className="mb-2 flex items-start justify-between gap-4">
             <h1 className="text-4xl font-extrabold leading-tight text-foreground">{book.title}</h1>
-            <SaveToggle book={book} coverImage={coverImage} />
+            <SaveToggle 
+              bookId={book.id} 
+              title={book.title}
+              author={book.authors[0]?.name}
+              coverImage={coverImage} 
+            />
           </div>
 
           <p className="mb-6 text-xl text-muted-foreground">di {book.authors[0]?.name || "Autore Ignoto"}</p>
