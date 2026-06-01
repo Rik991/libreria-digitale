@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { supabase } from "@/lib/supabase";
+import { Search } from "lucide-react";
 import type { GutendexBook, GutendexSearchResponse } from "@/types";
 import BookCard from "./BookCard";
 
@@ -19,8 +21,37 @@ export default function SearchBooks({ initialPopularBooks = [] }: SearchBooksPro
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searched, setSearched] = useState(!!initialQuery);
+  const [savedIds, setSavedIds] = useState<Set<number>>(new Set());
 
   const abortRef = useRef<AbortController | null>(null);
+
+  // Fetch dei libri salvati per ottimizzare le icone (evita N+1 query nei BookCard)
+  useEffect(() => {
+    const fetchSavedIds = async () => {
+      const {
+        data: { user }
+      } = await supabase.auth.getUser();
+      if (!user) {
+        setSavedIds(new Set());
+        return;
+      }
+      const { data } = await supabase.from("saved_books").select("book_id").eq("user_id", user.id);
+
+      if (data) {
+        setSavedIds(new Set(data.map((row) => row.book_id)));
+      }
+    };
+
+    fetchSavedIds();
+
+    const {
+      data: { subscription }
+    } = supabase.auth.onAuthStateChange(() => {
+      fetchSavedIds();
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   // Update URL on query change (con debounce per non intasare la history)
   useEffect(() => {
@@ -54,15 +85,13 @@ export default function SearchBooks({ initialPopularBooks = [] }: SearchBooksPro
 
       try {
         const encoded = encodeURIComponent(query.trim());
-        const res = await fetch(
-          `https://gutendex.com/books?search=${encoded}`,
-          { signal: controller.signal }
-        );
+        const res = await fetch(`https://gutendex.com/books?search=${encoded}`, { signal: controller.signal });
 
         if (!res.ok) throw new Error(`Errore API: ${res.status}`);
 
         const data: GutendexSearchResponse = await res.json();
-        setBooks(data.results);
+        // Tagliamo a 30 risultati per avere una griglia perfetta (5 colonne su desktop)
+        setBooks((data.results || []).slice(0, 30));
         setSearched(true);
       } catch (err) {
         if (err instanceof DOMException && err.name === "AbortError") return;
@@ -83,25 +112,12 @@ export default function SearchBooks({ initialPopularBooks = [] }: SearchBooksPro
     <div>
       {/* Search input */}
       <div className="relative mb-8 max-w-xl">
-        <svg
-          className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground"
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          strokeWidth={2}
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
-          />
-        </svg>
+        <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
         <input
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Cerca per titolo, autore, argomento..."
+          placeholder="Cerca per titolo, autore..."
           className="w-full rounded-lg border border-border bg-card text-card-foreground px-4 py-3 pl-12 text-base outline-none transition-all focus:border-primary focus:ring-3 focus:ring-primary/15 placeholder:text-muted-foreground"
         />
       </div>
@@ -110,17 +126,13 @@ export default function SearchBooks({ initialPopularBooks = [] }: SearchBooksPro
       {loading && (
         <div className="mb-6 flex items-center gap-3 text-muted-foreground">
           <span className="h-5 w-5 animate-spin rounded-full border-2 border-border border-t-primary" />
-          Ricerca in corso...
+          Ricerca in corso..
         </div>
       )}
 
       {error && <p className="mb-6 text-sm text-danger">{error}</p>}
 
-      {!loading && !error && searched && books.length === 0 && (
-        <p className="mb-6 italic text-muted-foreground">
-          Nessun risultato per &ldquo;{query}&rdquo;
-        </p>
-      )}
+      {!loading && !error && searched && books.length === 0 && <p className="mb-6 italic text-muted-foreground">Nessun risultato per &ldquo;{query}&rdquo;</p>}
 
       {/* Results or Popular Catalog */}
       {showPopular ? (
@@ -129,7 +141,7 @@ export default function SearchBooks({ initialPopularBooks = [] }: SearchBooksPro
           {initialPopularBooks?.length > 0 ? (
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:gap-6">
               {initialPopularBooks.map((book) => (
-                <BookCard key={book.id} book={book} />
+                <BookCard key={book.id} book={book} initialSaved={savedIds.has(book.id)} />
               ))}
             </div>
           ) : (
@@ -139,7 +151,7 @@ export default function SearchBooks({ initialPopularBooks = [] }: SearchBooksPro
       ) : (
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:gap-6">
           {books.map((book) => (
-            <BookCard key={book.id} book={book} />
+            <BookCard key={book.id} book={book} initialSaved={savedIds.has(book.id)} />
           ))}
         </div>
       )}
