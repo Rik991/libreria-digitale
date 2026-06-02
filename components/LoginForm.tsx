@@ -4,19 +4,29 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
+const getErrorMessage = (error: any): string => {
+  const msg = error?.message || String(error);
+  if (msg.includes("profiles_username_key")) return "Questo username è già in uso.";
+  if (msg.includes("Invalid login credentials")) return "Email o password errati.";
+  if (msg.includes("User already registered")) return "Esiste già un account con questa email.";
+  return msg;
+};
+
 export default function LoginForm() {
   const [mode, setMode] = useState<"login" | "register">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [username, setUsername] = useState("");
-  const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [generalError, setGeneralError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   const router = useRouter();
 
   const resetMessages = () => {
-    setError(null);
+    setFieldErrors({});
+    setGeneralError(null);
     setSuccess(null);
   };
 
@@ -28,7 +38,7 @@ export default function LoginForm() {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
 
     if (error) {
-      setError(error.message);
+      setGeneralError(getErrorMessage(error));
     } else {
       router.push("/");
     }
@@ -39,21 +49,47 @@ export default function LoginForm() {
     e.preventDefault();
     resetMessages();
 
+    let hasErrors = false;
+    const newFieldErrors: Record<string, string> = {};
+
     if (!username.trim()) {
-      setError("Inserisci un username.");
-      return;
+      newFieldErrors.username = "Inserisci un username.";
+      hasErrors = true;
     }
     if (password.length < 6) {
-      setError("La password deve avere almeno 6 caratteri.");
+      newFieldErrors.password = "La password deve avere almeno 6 caratteri.";
+      hasErrors = true;
+    }
+
+    if (hasErrors) {
+      setFieldErrors(newFieldErrors);
       return;
     }
 
     setLoading(true);
 
+    // Controllo preventivo: verifichiamo se l'username esiste già prima di creare l'account Auth
+    const { data: existingUser } = await supabase
+      .from("profiles")
+      .select("username")
+      .eq("username", username.trim())
+      .maybeSingle();
+
+    if (existingUser) {
+      setFieldErrors({ username: "Questo username è già in uso. Scegline un altro." });
+      setLoading(false);
+      return;
+    }
+
     const { data, error: authError } = await supabase.auth.signUp({ email, password });
 
     if (authError) {
-      setError(authError.message);
+      const msg = getErrorMessage(authError);
+      if (msg.toLowerCase().includes("email")) {
+        setFieldErrors({ email: msg });
+      } else {
+        setGeneralError(msg);
+      }
       setLoading(false);
       return;
     }
@@ -64,7 +100,12 @@ export default function LoginForm() {
         .insert([{ id: data.user.id, username: username.trim() }]);
 
       if (profileError) {
-        setError("Account creato, ma errore nel profilo: " + profileError.message);
+        const msg = getErrorMessage(profileError);
+        if (msg.includes("username")) {
+          setFieldErrors({ username: msg });
+        } else {
+          setGeneralError("Errore nel profilo: " + msg);
+        }
       } else {
         setSuccess("Registrazione completata! Ora puoi accedere.");
         setMode("login");
@@ -103,9 +144,9 @@ export default function LoginForm() {
       </div>
 
       {/* Messages */}
-      {error && (
+      {generalError && (
         <div className="mb-4 rounded-md bg-danger-light p-3 text-sm text-danger">
-          {error}
+          {generalError}
         </div>
       )}
       {success && (
@@ -123,8 +164,13 @@ export default function LoginForm() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            className="w-full rounded-md border border-border bg-background px-4 py-3 text-foreground outline-none transition-all focus:border-primary focus:ring-3 focus:ring-primary/15"
+            className={`w-full rounded-md border bg-background px-4 py-3 text-foreground outline-none transition-all focus:ring-3 ${
+              fieldErrors.email 
+                ? "border-danger focus:border-danger focus:ring-danger/15" 
+                : "border-border focus:border-primary focus:ring-primary/15"
+            }`}
           />
+          {fieldErrors.email && <p className="mt-1 text-sm text-danger">{fieldErrors.email}</p>}
         </div>
 
         {mode === "register" && (
@@ -135,8 +181,13 @@ export default function LoginForm() {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               required
-              className="w-full rounded-md border border-border bg-background px-4 py-3 text-foreground outline-none transition-all focus:border-primary focus:ring-3 focus:ring-primary/15"
+              className={`w-full rounded-md border bg-background px-4 py-3 text-foreground outline-none transition-all focus:ring-3 ${
+                fieldErrors.username 
+                  ? "border-danger focus:border-danger focus:ring-danger/15" 
+                  : "border-border focus:border-primary focus:ring-primary/15"
+              }`}
             />
+            {fieldErrors.username && <p className="mt-1 text-sm text-danger">{fieldErrors.username}</p>}
           </div>
         )}
 
@@ -147,8 +198,13 @@ export default function LoginForm() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            className="w-full rounded-md border border-border bg-background px-4 py-3 text-foreground outline-none transition-all focus:border-primary focus:ring-3 focus:ring-primary/15"
+            className={`w-full rounded-md border bg-background px-4 py-3 text-foreground outline-none transition-all focus:ring-3 ${
+              fieldErrors.password 
+                ? "border-danger focus:border-danger focus:ring-danger/15" 
+                : "border-border focus:border-primary focus:ring-primary/15"
+            }`}
           />
+          {fieldErrors.password && <p className="mt-1 text-sm text-danger">{fieldErrors.password}</p>}
         </div>
 
         <button
