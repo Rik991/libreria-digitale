@@ -1,33 +1,29 @@
-// === API Gutendex ===
-
-export interface GutendexAuthor {
+export interface Author {
   name: string;
-  birth_year: number | null;
-  death_year: number | null;
+  birth_year?: number | null;
+  death_year?: number | null;
 }
 
-export interface GutendexBook {
+export interface Book {
   id: number;
   title: string;
-  authors: GutendexAuthor[];
-  summaries: string[];
-  subjects: string[];
-  bookshelves: string[];
-  languages: string[];
-  formats: Record<string, string>;
-  download_count: number;
-  copyright: boolean | null;
-  media_type: string;
+  authors: Author[];
+  cover_image?: string | null;
+  summary?: string;
+  subjects?: string[];
+  bookshelves?: string[];
+  languages?: string[];
+  download_count?: number;
+  copyright?: boolean | null;
+  media_type?: string;
 }
 
-export interface GutendexSearchResponse {
+export interface BookSearchResponse {
   count: number;
   next: string | null;
   previous: string | null;
-  results: GutendexBook[];
+  results: Book[];
 }
-
-// === Supabase / App locale ===
 
 export interface SavedBook {
   id: string;

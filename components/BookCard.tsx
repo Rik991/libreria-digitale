@@ -2,17 +2,17 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import type { GutendexBook } from "@/types";
+import type { Book } from "@/types";
 import SaveToggle from "./SaveToggle";
 
 interface BookCardProps {
-  book: GutendexBook;
+  book: Book;
   initialSaved?: boolean;
 }
 
 export default function BookCard({ book, initialSaved }: BookCardProps) {
-  const coverImage = book.formats["image/jpeg"] || null;
-  const author = book.authors[0]?.name || "Autore sconosciuto";
+  const coverImage = book.cover_image || null;
+  const author = book.authors?.[0]?.name || "Autore sconosciuto";
 
   return (
     <Link
@@ -35,7 +35,7 @@ export default function BookCard({ book, initialSaved }: BookCardProps) {
           </div>
         )}
 
-        {/* Reusable Heart Button */}
+        {/* Heart Button */}
         <SaveToggle
           variant="icon"
           bookId={book.id}

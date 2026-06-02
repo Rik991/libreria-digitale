@@ -1,31 +1,51 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { Search } from "lucide-react";
-import type { GutendexBook, GutendexSearchResponse } from "@/types";
+import type { Book } from "@/types";
 import BookCard from "./BookCard";
 
-interface SearchBooksProps {
-  initialPopularBooks?: GutendexBook[];
-}
+const RAPID_API_KEY = "8c4e7c2e5amsh078be79eba07031p1e5aa4jsne9c744d51d13";
+const RAPID_API_HOST = "project-gutenberg-free-books-api1.p.rapidapi.com";
+const RAPID_HEADERS = {
+  "X-RapidAPI-Key": RAPID_API_KEY,
+  "X-RapidAPI-Host": RAPID_API_HOST
+};
 
-export default function SearchBooks({ initialPopularBooks = [] }: SearchBooksProps) {
+// Cache in memoria per i libri popolari (evita troppe chiamate alla RapidAPI)
+let popularBooksCache: Book[] | null = null;
+
+export default function SearchBooks() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const initialQuery = searchParams.get("q") || "";
-
-  const [query, setQuery] = useState(initialQuery);
-  const [books, setBooks] = useState<GutendexBook[]>([]);
+  const [query, setQuery] = useState("");
+  const [books, setBooks] = useState<Book[]>([]);
+  const [popularBooks, setPopularBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [searched, setSearched] = useState(!!initialQuery);
+  const [searched, setSearched] = useState(false);
   const [savedIds, setSavedIds] = useState<Set<number>>(new Set());
   const [nextUrl, setNextUrl] = useState<string | null>(null);
 
   const abortRef = useRef<AbortController | null>(null);
+
+  // Fetch libri popolari via RapidAPI (con cache in memoria)
+  useEffect(() => {
+    if (popularBooksCache) {
+      setPopularBooks(popularBooksCache);
+      return;
+    }
+    fetch(`https://${RAPID_API_HOST}/books`, { headers: RAPID_HEADERS })
+      .then((res) => res.json())
+      .then((data) => {
+        const books: Book[] = (data.results || []).slice(0, 30);
+        popularBooksCache = books;
+        setPopularBooks(books);
+      })
+      .catch(() => {});
+  }, []);
 
   // Fetch dei libri salvati
   useEffect(() => {
@@ -38,7 +58,6 @@ export default function SearchBooks({ initialPopularBooks = [] }: SearchBooksPro
         return;
       }
       const { data } = await supabase.from("saved_books").select("book_id").eq("user_id", user.id);
-
       if (data) {
         setSavedIds(new Set(data.map((row) => row.book_id)));
       }
@@ -55,21 +74,12 @@ export default function SearchBooks({ initialPopularBooks = [] }: SearchBooksPro
     return () => subscription.unsubscribe();
   }, []);
 
-  // Update URL on query change (con debounce per non intasare la history)
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (query.trim()) {
-        router.replace(`/?q=${encodeURIComponent(query.trim())}`, { scroll: false });
-      } else {
-        router.replace("/", { scroll: false });
-      }
-    }, 500);
-    return () => clearTimeout(timer);
-  }, [query, router]);
 
-  // Gestisce la ricerca vera e propria con fetch
+
+  // Fetch ricerca con debounce
   useEffect(() => {
     if (!query.trim()) {
+      abortRef.current?.abort();
       setBooks([]);
       setNextUrl(null);
       setSearched(false);
@@ -81,24 +91,21 @@ export default function SearchBooks({ initialPopularBooks = [] }: SearchBooksPro
     setLoading(true);
     setError(null);
 
-    const timer = setTimeout(async () => {
+    const timerId = setTimeout(async () => {
       abortRef.current?.abort();
       const controller = new AbortController();
       abortRef.current = controller;
 
       try {
         const encoded = encodeURIComponent(query.trim());
-        const res = await fetch(`https://gutendex.com/books?search=${encoded}`, { signal: controller.signal });
-
+        const res = await fetch(`https://${RAPID_API_HOST}/books?title=${encoded}`, { headers: RAPID_HEADERS, signal: controller.signal });
         if (!res.ok) throw new Error(`Errore API: ${res.status}`);
-
-        const data: GutendexSearchResponse = await res.json();
-        setBooks(data.results);
-        setNextUrl(data.next);
+        const data = await res.json();
+        setBooks(data.results || []);
+        setNextUrl(data.next ?? null);
         setSearched(true);
       } catch (err) {
         if (err instanceof DOMException && err.name === "AbortError") return;
-
         setError(err instanceof Error ? err.message : "Errore sconosciuto");
         setBooks([]);
         setNextUrl(null);
@@ -107,20 +114,18 @@ export default function SearchBooks({ initialPopularBooks = [] }: SearchBooksPro
       }
     }, 500);
 
-    return () => clearTimeout(timer);
+    return () => clearTimeout(timerId);
   }, [query]);
 
   const loadMore = async () => {
     if (!nextUrl || loadingMore) return;
-
     setLoadingMore(true);
     try {
-      const res = await fetch(nextUrl);
+      const res = await fetch(nextUrl, { headers: RAPID_HEADERS });
       if (!res.ok) throw new Error(`Errore API: ${res.status}`);
-
-      const data: GutendexSearchResponse = await res.json();
-      setBooks((prev) => [...prev, ...data.results]);
-      setNextUrl(data.next);
+      const data = await res.json();
+      setBooks((prev) => [...prev, ...(data.results || [])]);
+      setNextUrl(data.next ?? null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Errore durante il caricamento");
     } finally {
@@ -129,9 +134,6 @@ export default function SearchBooks({ initialPopularBooks = [] }: SearchBooksPro
   };
 
   const showPopular = !query.trim() && !searched;
-
-  // Se c'è una pagina successiva, mascheriamo gli elementi extra nel buffer per non rompere la griglia a 5.
-  // Se non c'è una pagina successiva, mostriamo tutto quello che abbiamo.
   const renderableCount = nextUrl ? Math.floor(books.length / 30) * 30 : books.length;
   const renderableBooks = books.slice(0, renderableCount);
 
@@ -165,14 +167,17 @@ export default function SearchBooks({ initialPopularBooks = [] }: SearchBooksPro
       {showPopular ? (
         <div>
           <h2 className="mb-4 text-xl font-bold text-foreground">I Classici Più Amati</h2>
-          {initialPopularBooks?.length > 0 ? (
+          {popularBooks.length > 0 ? (
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:gap-6">
-              {initialPopularBooks.map((book) => (
+              {popularBooks.map((book) => (
                 <BookCard key={book.id} book={book} initialSaved={savedIds.has(book.id)} />
               ))}
             </div>
           ) : (
-            <p className="text-muted-foreground">Nessun libro trovato nel catalogo generale.</p>
+            <div className="flex items-center gap-3 text-muted-foreground">
+              <span className="h-5 w-5 animate-spin rounded-full border-2 border-border border-t-primary" />
+              Caricamento catalogo...
+            </div>
           )}
         </div>
       ) : (
