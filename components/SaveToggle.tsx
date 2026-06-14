@@ -15,15 +15,7 @@ interface SaveToggleProps {
   onToggle?: (isSaved: boolean) => void;
 }
 
-export default function SaveToggle({ 
-  bookId, 
-  title, 
-  author, 
-  coverImage, 
-  initialSaved, 
-  variant = "button",
-  onToggle 
-}: SaveToggleProps) {
+export default function SaveToggle({ bookId, title, author, coverImage, initialSaved, variant = "button", onToggle }: SaveToggleProps) {
   const [isSaved, setIsSaved] = useState(initialSaved ?? false);
   const [loading, setLoading] = useState(initialSaved === undefined);
   const router = useRouter();
@@ -40,18 +32,15 @@ export default function SaveToggle({
     if (initialSaved !== undefined) return;
 
     const checkIfSaved = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user }
+      } = await supabase.auth.getUser();
       if (!user) {
         setLoading(false);
         return;
       }
 
-      const { data } = await supabase
-        .from("saved_books")
-        .select("id")
-        .eq("book_id", bookId)
-        .eq("user_id", user.id)
-        .single();
+      const { data } = await supabase.from("saved_books").select("id").eq("book_id", bookId).eq("user_id", user.id).single();
 
       if (data) setIsSaved(true);
       setLoading(false);
@@ -66,7 +55,9 @@ export default function SaveToggle({
       e.stopPropagation();
     }
 
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user }
+    } = await supabase.auth.getUser();
 
     if (!user) {
       router.push("/login?redirect=true");
@@ -79,11 +70,7 @@ export default function SaveToggle({
       setIsSaved(false);
       onToggle?.(false);
 
-      const { error } = await supabase
-        .from("saved_books")
-        .delete()
-        .eq("book_id", bookId)
-        .eq("user_id", user.id);
+      const { error } = await supabase.from("saved_books").delete().eq("book_id", bookId).eq("user_id", user.id);
 
       if (error) {
         setIsSaved(oldState);
@@ -100,8 +87,8 @@ export default function SaveToggle({
           book_id: bookId,
           title: title || "Titolo Sconosciuto",
           cover_image: coverImage || null,
-          author: author || "Autore Ignoto",
-        },
+          author: author || "Autore Sconosciuto"
+        }
       ]);
 
       if (error) {
@@ -114,7 +101,7 @@ export default function SaveToggle({
   if (loading && variant === "button") {
     return <div className="h-12 w-12 animate-pulse rounded-full bg-muted" />;
   }
-  
+
   if (loading && variant === "icon") {
     return <div className="absolute right-2 top-2 h-8 w-8 animate-pulse rounded-full bg-muted" />;
   }
@@ -130,10 +117,7 @@ export default function SaveToggle({
         }`}
         title={isSaved ? "Rimuovi dai preferiti" : "Salva nei preferiti"}
       >
-        <Heart
-          className="h-4 w-4 transition-transform hover:scale-110"
-          fill={isSaved ? "currentColor" : "none"}
-        />
+        <Heart className="h-4 w-4 transition-transform hover:scale-110" fill={isSaved ? "currentColor" : "none"} />
       </button>
     );
   }
@@ -148,10 +132,7 @@ export default function SaveToggle({
       }`}
       title={isSaved ? "Rimuovi dai preferiti" : "Aggiungi ai preferiti"}
     >
-      <Heart
-        className="h-6 w-6 transition-transform hover:scale-110"
-        fill={isSaved ? "currentColor" : "none"}
-      />
+      <Heart className="h-6 w-6 transition-transform hover:scale-110" fill={isSaved ? "currentColor" : "none"} />
     </button>
   );
 }

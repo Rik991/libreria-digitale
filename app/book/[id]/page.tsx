@@ -9,9 +9,9 @@ import CommentsSection from "@/components/CommentsSection";
 import type { Book } from "@/types";
 
 //chiavi pubbliche rapidapi, non le metto negli env per praticità
-const RAPID_API_KEY = "8c4e7c2e5amsh078be79eba07031p1e5aa4jsne9c744d51d13";
-const RAPID_API_HOST = "project-gutenberg-free-books-api1.p.rapidapi.com";
-const RAPID_HEADERS = {
+export const RAPID_API_KEY = "8c4e7c2e5amsh078be79eba07031p1e5aa4jsne9c744d51d13";
+export const RAPID_API_HOST = "project-gutenberg-free-books-api1.p.rapidapi.com";
+export const RAPID_HEADERS = {
   "X-RapidAPI-Key": RAPID_API_KEY,
   "X-RapidAPI-Host": RAPID_API_HOST
 };
@@ -70,7 +70,7 @@ export default function BookPage() {
 
   const coverImage = book.cover_image || null;
   const summary = book.summary || "Nessuna sinossi disponibile per questo titolo.";
-  const author = book.authors?.[0]?.name || "Autore Ignoto";
+  const author = book.authors?.[0]?.name || "Autore Sconosciuto";
 
   return (
     <main className="mx-auto w-full max-w-[900px] flex-1 px-8 py-10">

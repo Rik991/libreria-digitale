@@ -17,6 +17,7 @@ export default function CommentsSection({ bookId }: CommentsSectionProps) {
   const [rating, setRating] = useState<number>(5);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
 
   const fetchComments = useCallback(async () => {
     const { data, error } = await supabase
@@ -44,25 +45,32 @@ export default function CommentsSection({ bookId }: CommentsSectionProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!currentUser || !newComment.trim()) return;
+    if (!currentUser || !newComment.trim() || submitting) return;
 
-    const { data, error } = await supabase
-      .from("comments")
-      .insert([
-        {
-          book_id: bookId,
-          user_id: currentUser.id,
-          content: newComment,
-          rating
-        }
-      ])
-      .select(`id, content, rating, created_at, user_id, profiles ( username )`)
-      .single();
+    setSubmitting(true);
+    try {
+      const { data, error } = await supabase
+        .from("comments")
+        .insert([
+          {
+            book_id: bookId,
+            user_id: currentUser.id,
+            content: newComment,
+            rating
+          }
+        ])
+        .select(`id, content, rating, created_at, user_id, profiles ( username )`)
+        .single();
 
-    if (!error && data) {
-      setNewComment("");
-      setRating(5);
-      setComments([data as unknown as Comment, ...comments]);
+      if (!error && data) {
+        setNewComment("");
+        setRating(5);
+        setComments([data as unknown as Comment, ...comments]);
+      }
+    } catch (err) {
+      console.error("Errore durante l'invio del commento:", err);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -104,8 +112,15 @@ export default function CommentsSection({ bookId }: CommentsSectionProps) {
             required
           />
           <div className="mt-4 flex justify-end">
-            <button type="submit" className="rounded-md bg-primary px-6 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary-hover">
-              Pubblica Recensione
+            <button
+              type="submit"
+              disabled={submitting}
+              className="flex items-center gap-2 rounded-md bg-primary px-6 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {submitting && (
+                <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+              )}
+              {submitting ? "Pubblicazione..." : "Pubblica Recensione"}
             </button>
           </div>
         </form>

@@ -1,24 +1,16 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { Search } from "lucide-react";
 import type { Book } from "@/types";
 import BookCard from "./BookCard";
-
-const RAPID_API_KEY = "8c4e7c2e5amsh078be79eba07031p1e5aa4jsne9c744d51d13";
-const RAPID_API_HOST = "project-gutenberg-free-books-api1.p.rapidapi.com";
-const RAPID_HEADERS = {
-  "X-RapidAPI-Key": RAPID_API_KEY,
-  "X-RapidAPI-Host": RAPID_API_HOST
-};
+import { RAPID_API_HOST, RAPID_HEADERS } from "@/app/book/[id]/page";
 
 // Cache in memoria per i libri popolari (evita troppe chiamate alla RapidAPI)
 let popularBooksCache: Book[] | null = null;
 
 export default function SearchBooks() {
-  const router = useRouter();
   const [query, setQuery] = useState("");
   const [books, setBooks] = useState<Book[]>([]);
   const [popularBooks, setPopularBooks] = useState<Book[]>([]);
@@ -73,8 +65,6 @@ export default function SearchBooks() {
 
     return () => subscription.unsubscribe();
   }, []);
-
-
 
   // Fetch ricerca con debounce
   useEffect(() => {
